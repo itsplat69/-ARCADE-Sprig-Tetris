@@ -1,0 +1,136 @@
+
+/* 
+@title: Tetris_With_Hold
+@author: Splat
+
+*/
+
+let holdPiece = null; 
+let heldPieceText = null;
+
+  const rows = 12;
+const cols = 8;
+const borders = false;
+const emptyColor = "0";
+const background = "b";
+
+setLegend( 
+  [ background, bitmap`
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000`]
+);
+
+const iPiece = [
+      [  true,  true,  true,  true ]
+  ]
+const jPiece = [
+      [  true, false, false ],
+      [  true,  true,  true ]
+]
+const lPiece = [
+    [ false, false,  true ],
+    [  true,  true,  true ]
+]
+const oPiece = [
+    [  true,  true ],
+    [  true,  true ]
+]
+const sPiece = [
+    [ false,  true,  true ],
+    [  true,  true, false ]
+]
+const tPiece = [
+    [ false,  true, false ],
+    [  true,  true,  true ]
+]
+const zPiece = [
+    [  true,  true, false ],
+    [ false,  true,  true ]
+]
+let board = [];
+let score = 0;
+const music = tune`
+214.28571428571428: e5-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: e3/214.28571428571428,
+214.28571428571428: b4-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: c5-214.28571428571428 + e3/214.28571428571428,
+214.28571428571428: d5-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: e3/214.28571428571428,
+214.28571428571428: c5-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: b4-214.28571428571428 + e3/214.28571428571428,
+214.28571428571428: a4-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: a3/214.28571428571428,
+214.28571428571428: a4-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: c5-214.28571428571428 + a3/214.28571428571428,
+214.28571428571428: e5-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: a3/214.28571428571428,
+214.28571428571428: d5-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: c5-214.28571428571428 + a3/214.28571428571428,
+214.28571428571428: b4-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: e3/214.28571428571428,
+214.28571428571428: b4-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: c5-214.28571428571428 + e3/214.28571428571428,
+214.28571428571428: d5-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: e3/214.28571428571428,
+214.28571428571428: e5-214.28571428571428 + e2/214.28571428571428,
+214.28571428571428: e3/214.28571428571428,
+214.28571428571428: c5-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: a3/214.28571428571428,
+214.28571428571428: a4-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: a3/214.28571428571428,
+214.28571428571428: a4-214.28571428571428 + a2/214.28571428571428,
+214.28571428571428: a3/214.28571428571428,
+214.28571428571428: a2/214.28571428571428,
+214.28571428571428: a3/214.28571428571428`
+let playback = playTune(music, Infinity)
+for (let i = 0; i < rows; i ++){
+  const row = [];
+  for (let j = 0; j < cols; j ++){ row.push(emptyColor); }
+  board.push(row);
+}
+
+const pieces = [ iPiece, jPiece, lPiece, oPiece,
+                        sPiece, tPiece, zPiece ]
+const colors = [ "3", "6", "8",
+                             "1", "7", "4", "5" ]
+
+let fallingPiece;
+let fallingPieceColor;
+let numFallingPieceRows, numFallingPieceCols;
+let fallingPieceRow, fallingPieceCol;
+
+function newFallingPiece() {
+  let randomIndex = Math.floor(Math.random() * pieces.length);
+  fallingPiece = pieces[randomIndex]
+  fallingPieceColor = colors[randomIndex]
+
+  numFallingPieceRows = fallingPiece.length;
+  numFallingPieceCols = fallingPiece[0].length;
+  fallingPieceRow = 0;
+  fallingPieceCol = Math.floor(cols / 2) - Math.floor(numFallingPieceCols / 2)
+}
+
+function placeFallingPiece() {
+  let fp = fallingPiece;
+  for (let r = 0; r < fp.length; r ++) {
+    const row = fp[r]
+    for (let c = 0; c < fp[r].length; c++) {
+      const col = fp[r][c];
+      if (col) {
+        let boardRow = fallingPieceRow + r;
+        let boardCol = fallingPieceCol + c;
+        board[boardRow][boardCol] 
